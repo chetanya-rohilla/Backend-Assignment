@@ -1,8 +1,16 @@
 const StudentModel = require("../models/studentModel")
+const {isValid, isValidbody, nameRegex} = require("../validator/validator")
 
 const addStudent = async function(req, res) {
     try {
         let {name, subject, marks} = req.body
+
+        if(!isValidbody(req.body)) return res.status(400).send({status: false, msg : "Please provide data"})
+        if(!isValid(name)) return res.status(400).send({status: false, msg : "Please provide a name"})
+        if(!nameRegex.test(name))  return res.status(400).send({status: false, msg : "Please provide a correct name"})
+        if(!isValid(subject)) return res.status(400).send({status: false, msg : "Please provide a subject"})
+        if(!Number(marks)) return res.status(400).send({status:false, msg : "Please enter marks as a number"})
+
         let student = await StudentModel.findOne({name, subject, userId : req.userId, isDeleted : false})
 
         if(student) {
@@ -21,8 +29,10 @@ const addStudent = async function(req, res) {
 const viewStudent = async function(req, res) {
     try {
         let {name, subject} = req.query, query = {}
+
         if(name) query.name = name
         if(subject) query.subject = subject
+
         let students = await StudentModel.find({...query, userId : req.userId, isDeleted : false})
         if(students.length == 0) return res.status(404).send({status:false, msg: "No students found"})
 
@@ -35,9 +45,12 @@ const viewStudent = async function(req, res) {
 const updateStudent = async function(req, res) {
     try {
         let {name, subject, marks} = req.body
+
+        if(!isValidbody(req.body)) return res.status(400).send({status: false, msg : "Please provide data"})
         let student = await StudentModel.findOne({name, subject, userId : req.userId, isDeleted : false})
         if(!student) return res.status(404).send({status:false, msg: "Student not found"})
 
+        if(!Number(marks)) return res.status(400).send({status:false, msg : "Please enter marks as a number"})
         student.marks = marks
         student.save()
 
@@ -50,6 +63,7 @@ const updateStudent = async function(req, res) {
 const deleteStudent = async function(req, res) {
     try {
         let {name, subject} = req.body
+        if(!isValidbody(req.body)) return res.status(400).send({status: false, msg : "Please provide data"})
         let student = await StudentModel.findOne({name, subject, userId : req.userId, isDeleted : false})
 
         if(student) {
