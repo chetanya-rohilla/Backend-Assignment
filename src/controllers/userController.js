@@ -14,6 +14,9 @@ const createUser = async function(req, res) {
         if(!nameRegex.test(name))  return res.status(400).send({status: false, msg : "Please provide a correct name"})
         if(!emailRegex.test(email))  return res.status(400).send({status: false, msg : "Please provide a correct email"})
 
+        let user = await UserModel.findOne({email})
+        if(user) return res.status(400).send({status: false, msg : "Email already used"})
+
         password = await bcrypt.hash(password, 10)
 
         const createdUser = await UserModel.create({name, email, password})
